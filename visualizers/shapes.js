@@ -10,9 +10,9 @@ export default class AudioVisualizer {
 
         this.particles = [];
         this.lastBeat = 0;
-        this.beatThreshold = 0.6;
-        this.beatCooldown = 300;
-        this.maxParticles = 500;
+        this.beatThreshold = 0.65;
+        this.beatCooldown = 400;
+        this.maxParticles = 100;
     }
 
     update() {
@@ -21,22 +21,21 @@ export default class AudioVisualizer {
 
         if (bassEnergy > this.beatThreshold && now - this.lastBeat > this.beatCooldown) {
             this.lastBeat = now;
-            const sides = Math.max(3, 8 - Math.floor(bassEnergy * 6));
-            const count = 2 + Math.floor(bassEnergy * 5);
+            const sides = Math.max(3, 8 - Math.floor(bassEnergy * 5));
+            const count = 1 + Math.floor(bassEnergy * 2);
             for (let i = 0; i < count; i++) {
                 if (this.particles.length >= this.maxParticles) break;
                 const angle = Math.random() * Math.PI * 2;
                 this.particles.push({
                     x: this.width / 2,
                     y: this.height / 2,
-                    radius: 10 + Math.random() * 15,
+                    radius: 15 + Math.random() * 10,
                     sides,
                     angle,
-                    speedX: Math.cos(angle) * (1 + Math.random() * 2),
-                    speedY: Math.sin(angle) * (1 + Math.random() * 2),
-                    rotation: 0,
+                    speedX: Math.cos(angle) * (0.5 + Math.random() * 1),
+                    speedY: Math.sin(angle) * (0.5 + Math.random() * 1),
                     alpha: 1,
-                    decay: 0.02 + Math.random() * 0.01
+                    decay: 0.005 + Math.random() * 0.01
                 });
             }
         }
@@ -64,7 +63,7 @@ export default class AudioVisualizer {
             }
             this.ctx.closePath();
             this.ctx.globalAlpha = p.alpha;
-            this.ctx.strokeStyle = `hsl(${p.angle * 180}, 100%, 60%)`;
+            this.ctx.strokeStyle = `hsl(${(p.angle * 180) % 360}, 100%, 60%)`;
             this.ctx.lineWidth = 1.5;
             this.ctx.stroke();
         }
