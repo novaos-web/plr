@@ -6,8 +6,6 @@ export default class AudioVisualizer {
         this.getAudioData = getAudioData;
         this.particles = [];
         this.barCount = 128;
-        this.rippleRadius = 0;
-        this.rippleAlpha = 0;
         this.center = { x: canvas.width / 2, y: canvas.height / 2 };
         this.lastBeat = 0;
         this.fftData = new Uint8Array(analyser.frequencyBinCount);
@@ -31,15 +29,7 @@ export default class AudioVisualizer {
         }
 
         if (bassEnergy > 0.9 && performance.now() - this.lastBeat > 300) {
-            this.rippleRadius = 0;
-            this.rippleAlpha = 1;
             this.lastBeat = performance.now();
-        }
-
-        if (this.rippleAlpha > 0) {
-            this.rippleRadius += 20;
-            this.rippleAlpha -= 0.02;
-            if (this.rippleAlpha < 0) this.rippleAlpha = 0;
         }
     }
 
@@ -62,14 +52,6 @@ export default class AudioVisualizer {
             this.ctx.beginPath();
             this.ctx.moveTo(x1, y1);
             this.ctx.lineTo(x2, y2);
-            this.ctx.stroke();
-        }
-
-        if (this.rippleAlpha > 0) {
-            this.ctx.beginPath();
-            this.ctx.arc(this.center.x, this.center.y, this.rippleRadius, 0, Math.PI * 2);
-            this.ctx.strokeStyle = `rgba(255, 255, 255, ${this.rippleAlpha})`;
-            this.ctx.lineWidth = 4;
             this.ctx.stroke();
         }
     }
