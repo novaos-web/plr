@@ -6,8 +6,11 @@ export default class AudioVisualizer {
         this.particles = [];
         this.maxParticles = 200;
         this.spawnCooldown = 0;
-    this.flows = [];
-    this.flowTimer = 0;
+        this.flows = [];
+        this.flowTimer = 0;
+        this.energyHistory = [];
+        this.historySize = 30;
+        this.prevTotalEnergy = 0;
         this.resize();
     }
 
@@ -32,8 +35,10 @@ export default class AudioVisualizer {
         }
     }
 
-    spawnFlow(totalEnergy) {
-        const angle = Math.random() * Math.PI * 2;
+    spawnFlow(totalEnergy, directionBias = null) {
+        const angle = directionBias !== null
+            ? (directionBias === 'up' ? Math.random() * Math.PI + Math.PI : Math.random() * Math.PI)
+            : Math.random() * Math.PI * 2;
         const strength = (totalEnergy / 255) * 0.2;
         this.flows.push({
             x: Math.random() * this.width,
@@ -47,18 +52,28 @@ export default class AudioVisualizer {
 
     update() {
         const { bassEnergy, totalEnergy } = this.getAudioData();
-        const beatThreshold = 160;
-        const beat = bassEnergy > beatThreshold;
 
-        if (beat && this.spawnCooldown <= 0) {
+        this.energyHistory.push(bassEnergy);
+        if (this.energyHistory.length > this.historySize) this.energyHistory.shift();
+        const averageEnergy = this.energyHistory.reduce((a, b) => a + b, 0) / this.energyHistory.length;
+        const spike = bassEnergy - averageEnergy > 30;
+        const rising = totalEnergy > this.prevTotalEnergy + 10;
+        const falling = totalEnergy < this.prevTotalEnergy - 10;
+        this.prevTotalEnergy = totalEnergy;
+
+        if (spike && this.spawnCooldown <= 0) {
             this.spawnBurst(bassEnergy);
             this.spawnCooldown = 5;
         } else {
             this.spawnCooldown--;
         }
+
         this.flowTimer--;
         if (this.flowTimer <= 0) {
-            this.spawnFlow(totalEnergy);
+            let directionBias = null;
+            if (rising) directionBias = 'up';
+            else if (falling) directionBias = 'down';
+            this.spawnFlow(totalEnergy, directionBias);
             this.flowTimer = 120 + Math.floor(Math.random() * 200);
         }
 
@@ -126,7 +141,6 @@ export default class AudioVisualizer {
                 a.vx *= scale;
                 a.vy *= scale;
             }
-
 
             a.life -= 0.003;
         }
