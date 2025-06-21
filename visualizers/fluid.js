@@ -4,7 +4,9 @@ export default class AudioVisualizer {
         this.ctx = canvas.getContext('2d');
         this.getAudioData = getAudioData;
         this.particles = [];
+        this.persistentParticles = [];
         this.maxParticles = 200;
+        this.persistentCount = 30;
         this.spawnCooldown = 0;
         this.flows = [];
         this.flowTimer = 0;
@@ -12,6 +14,7 @@ export default class AudioVisualizer {
         this.historySize = 30;
         this.prevTotalEnergy = 0;
         this.resize();
+        this.initPersistentParticles();
     }
 
     resize() {
@@ -19,8 +22,21 @@ export default class AudioVisualizer {
         this.height = this.canvas.height = this.canvas.clientHeight;
     }
 
+    initPersistentParticles() {
+        for (let i = 0; i < this.persistentCount; i++) {
+            this.persistentParticles.push({
+                x: Math.random() * this.width,
+                y: Math.random() * this.height,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                radius: 6,
+                color: `hsl(${Math.random() * 360}, 100%, 60%)`
+            });
+        }
+    }
+
     spawnBurst(strength) {
-        const count = Math.floor(3 + (strength / 255) * 7);
+        const count = Math.floor(2 + (strength / 255) * 20);
         for (let i = 0; i < count; i++) {
             const hue = Math.floor((strength / 255) * 200 + 100);
             this.particles.push({
@@ -30,6 +46,7 @@ export default class AudioVisualizer {
                 vy: (Math.random() - 0.5) * 2,
                 radius: 6,
                 life: 1,
+                energy: strength,
                 color: `hsl(${hue}, 100%, 60%)`
             });
         }
@@ -59,6 +76,7 @@ export default class AudioVisualizer {
         const spike = bassEnergy - averageEnergy > 30;
         const rising = totalEnergy > this.prevTotalEnergy + 10;
         const falling = totalEnergy < this.prevTotalEnergy - 10;
+        const silent = totalEnergy < 5;
         this.prevTotalEnergy = totalEnergy;
 
         if (spike && this.spawnCooldown <= 0) {
@@ -79,6 +97,27 @@ export default class AudioVisualizer {
 
         for (let flow of this.flows) flow.life--;
         this.flows = this.flows.filter(f => f.life > 0);
+
+        for (let p of this.persistentParticles) {
+            for (const flow of this.flows) {
+                const dx = p.x - flow.x;
+                const dy = p.y - flow.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < flow.radius) {
+                    const influence = 1 - dist / flow.radius;
+                    p.vx += flow.direction.x * flow.strength * influence;
+                    p.vy += flow.direction.y * flow.strength * influence;
+                }
+            }
+
+            p.vx *= 0.96;
+            p.vy *= 0.96;
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (p.x - p.radius < 0 || p.x + p.radius > this.width) p.vx *= -1;
+            if (p.y - p.radius < 0 || p.y + p.radius > this.height) p.vy *= -1;
+        }
 
         for (let i = 0; i < this.particles.length; i++) {
             const a = this.particles[i];
@@ -142,7 +181,7 @@ export default class AudioVisualizer {
                 a.vy *= scale;
             }
 
-            a.life -= 0.003;
+            a.life -= silent ? 0.01 : 0.003;
         }
 
         this.particles = this.particles.filter(p => p.life > 0);
@@ -154,6 +193,15 @@ export default class AudioVisualizer {
     draw() {
         this.ctx.clearRect(0, 0, this.width, this.height);
         this.ctx.save();
+
+        for (const p of this.persistentParticles) {
+            this.ctx.globalAlpha = 1;
+            this.ctx.fillStyle = p.color;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+
         for (const p of this.particles) {
             this.ctx.globalAlpha = p.life;
             this.ctx.fillStyle = p.color;
@@ -161,6 +209,7 @@ export default class AudioVisualizer {
             this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
             this.ctx.fill();
         }
+
         this.ctx.restore();
         this.ctx.globalAlpha = 1;
     }
