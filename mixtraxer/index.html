@@ -168,8 +168,8 @@
 
         // Configuration
         const CONFIG = {
-            fadeDuration: 3,    // Duration of crossfade in seconds
-            clipLength: 25,     // Length of each track clip to play in seconds
+            fadeDuration: 8,    // Duration of crossfade in seconds
+            clipLength: 30,     // Length of each track clip to play in seconds
             historySize: 5      // Number of recently played tracks to avoid
         };
 
@@ -216,8 +216,6 @@
         /**
          * 2. Analyzer
          * Purpose: Analyze BPM, key, loudness, sections (optional)
-         * NOTE: Full BPM/key analysis is complex and requires dedicated libraries.
-         * This implementation provides a placeholder for BPM.
          */
         const Analyzer = {
             /**
@@ -226,9 +224,17 @@
              * @returns {{ bpm: number, duration: number }} - Object containing analyzed data.
              */
             analyzeAudio: function(buffer) {
-                // Placeholder for BPM analysis.
-                // In a real application, you would integrate a sophisticated audio analysis library here.
-                // For demonstration, we'll return a random but plausible BPM.
+                // IMPORTANT NOTE ON BPM ANALYSIS:
+                // This implementation uses a placeholder for BPM analysis (a random value).
+                // For accurate BPM, key, and other timbre descriptors (as a real Mixtrax clone would require),
+                // you would need to integrate a dedicated audio analysis library.
+                // Popular JavaScript libraries for this include:
+                // - Essentia.js (WebAssembly port of the C++ Essentia library, very comprehensive)
+                // - Meyda (JavaScript audio feature extraction library)
+                //
+                // Integrating such libraries into a single HTML file without a build system
+                // can be complex, often requiring dynamic module imports or specific CDN setups
+                // that expose global objects. For this self-contained example, we simulate BPM.
                 const dummyBpm = Math.floor(Math.random() * (140 - 90 + 1)) + 90; // BPM between 90 and 140
 
                 return {
@@ -257,6 +263,7 @@
 
             /**
              * Gets the next track to play, using weighted random selection and avoiding recent history.
+             * This implements "Smart History Tracking" and "Weighted Random" selection.
              * @returns {Object|null} - The next track object or null if no tracks are available.
              */
             getNextTrack: function() {
@@ -538,6 +545,9 @@
                 incomingGainNode.gain.value = 0.0001; // Start muted for crossfade
 
                 // --- Calculate Beat-Aligned Start Offset for Incoming Track ---
+                // This logic aims to start the incoming track at a beat-aligned position.
+                // It picks a random beat within the first 20 seconds of the track,
+                // ensuring the `clipLength` can still be played from that point.
                 let offset = 0;
                 let durationToPlay = CONFIG.clipLength;
 
@@ -578,6 +588,9 @@
                     Crossfader.crossfade(this.nextGainNode, this.currentGainNode, CONFIG.fadeDuration);
 
                     // --- Tempo Matching Logic ---
+                    // Adjust the outgoing track's playback rate to match the incoming track's BPM.
+                    // Note: Changing playbackRate also changes pitch. For pitch-preserving time-stretching,
+                    // more advanced algorithms and libraries would be required.
                     const targetBPM = this.currentTrack.bpm; // BPM of the incoming track
                     const currentBPM = outgoingTrack.bpm;    // BPM of the outgoing track
 
@@ -609,6 +622,7 @@
 
                 // Pre-schedule the next track's playback
                 // The next track will start playing (and crossfading) when the current track is almost done.
+                // This timing ensures a seamless transition.
                 const nextTrackScheduleTime = audioContext.currentTime + durationToPlay - CONFIG.fadeDuration;
 
                 this.playbackTimeout = setTimeout(() => {
