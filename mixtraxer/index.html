@@ -1,791 +1,110 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pioneer Mixtrax Clone</title>
-    <!-- Tailwind CSS CDN for basic styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="utf-8">
+    <title>Mixtraxer</title>
     <style>
-        /* Custom styles for the app */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1a202c; /* Dark background */
-            color: #e2e8f0; /* Light text */
+            font-family: system-ui;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            gap: 1em;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
+            justify-content: center;
+            background-color: black;
             margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .container {
-            background-color: #2d3748; /* Slightly lighter dark background for container */
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-        }
-        h1 {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 25px;
-            color: #63b3ed; /* Blue for heading */
-        }
-        .file-input-wrapper {
-            margin-bottom: 25px;
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
-        }
-        .file-input-wrapper input[type=file] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            cursor: pointer;
-            width: 100%;
-            height: 100%;
-        }
-        .file-input-button {
-            background-color: #4299e1; /* Blue button */
             color: white;
-            padding: 12px 25px;
-            border-radius: 10px;
-            cursor: pointer;
-            display: inline-block;
-            font-weight: 600;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            &>div {
+                display: inherit;
+                flex-direction: row;
+                gap: .5em;
+            }
         }
-        .file-input-button:hover {
-            background-color: #3182ce;
-            transform: translateY(-2px);
+
+        input[type="file"] {
+            background-color: #101010;
+            border-radius: .5em;
+            padding: .5em;
         }
-        .action-buttons button {
-            background-color: #48bb78; /* Green for start */
-            color: white;
-            padding: 12px 25px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            margin: 0 10px;
+
+        button {
+            padding: .5em .8em;
+            background-color: rgb(23, 50, 27);
+            color: rgb(32, 255, 132);
+            font-size: 1.5em;
             border: none;
-        }
-        .action-buttons button:hover {
-            background-color: #38a169;
-            transform: translateY(-2px);
-        }
-        .action-buttons button:nth-child(2) { /* Stop button */
-            background-color: #e53e3e; /* Red */
-        }
-        .action-buttons button:nth-child(2):hover {
-            background-color: #c53030;
-        }
-        .action-buttons button:nth-child(3) { /* Skip button */
-            background-color: #ecc94b; /* Yellow */
-            color: #2d3748;
-        }
-        .action-buttons button:nth-child(3):hover {
-            background-color: #d69e2e;
-        }
-        #messages {
-            margin-top: 25px;
-            padding: 15px;
-            background-color: #2c5282; /* Darker blue for messages */
-            border-radius: 10px;
-            min-height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            color: #bee3f8;
-            word-break: break-all; /* Allow long messages to break */
-        }
-        #track-list {
-            margin-top: 25px;
-            text-align: left;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #4a5568;
-            border-radius: 10px;
-            padding: 10px;
-        }
-        .track-item {
-            padding: 8px 10px;
-            border-bottom: 1px solid #4a5568;
-            font-size: 0.95rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .track-item:last-child {
-            border-bottom: none;
-        }
-        .track-item.playing {
-            background-color: #4299e1;
-            color: white;
-            border-radius: 5px;
+            border-radius: 1.5em;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>🎧 Mixtrax Clone</h1>
-
-        <div class="file-input-wrapper">
-            <input type="file" id="audioFileInput" accept="audio/*" multiple>
-            <label for="audioFileInput" class="file-input-button">Select Audio Files</label>
-        </div>
-
-        <div class="action-buttons flex justify-center mb-5">
-            <button id="startButton" class="rounded-lg">Start Playback</button>
-            <button id="stopButton" class="rounded-lg">Stop Playback</button>
-            <button id="skipButton" class="rounded-lg">Skip Track</button>
-        </div>
-
-        <div id="messages" class="rounded-lg">
-            Ready. Select audio files to begin.
-        </div>
-
-        <div id="track-list" class="rounded-lg mt-5">
-            <h2 class="text-xl font-semibold mb-3 text-left">Loaded Tracks:</h2>
-            <ul id="track-ul">
-                <!-- Tracks will be listed here -->
-            </ul>
-        </div>
-    </div>
+    <h1>Mixtraxer</h1>
+    <p>Causes dizziness, disorientation and if exposed to for long periods, mild nausea.</p>
+    <input id="leftFile" type="file" accept="audio/*">
+    <input id="rightFile" type="file" accept="audio/*">
+    <label>Speed <input id="speed" type="range" min="0.1" max="5" step="0.1" value="1"></label>
+    <div><button id="play">Play</button>
+    <button id="stop">Stop</button></div>
 
     <script>
-        // Global AudioContext
-        let audioContext;
+        let ac, leftElem, rightElem, leftSrc, rightSrc, leftPanner, rightPanner;
+        let orbit = true, t = 0;
 
-        // Configuration
-        const CONFIG = {
-            fadeDuration: 8,    // Duration of crossfade in seconds
-            clipLength: 30,     // Length of each track clip to play in seconds
-            historySize: 5      // Number of recently played tracks to avoid
-        };
-
-        // Track structure
-        // { id: string, file: File, bpm: number, buffer: AudioBuffer, lastPlayed: number (timestamp) }
-
-        // --- Core Modules ---
-
-        /**
-         * 1. AudioLoader
-         * Purpose: Load and decode audio into AudioBuffer
-         */
-        const AudioLoader = {
-            /**
-             * Loads and decodes an audio file into an AudioBuffer.
-             * @param {File} file - The audio file to load.
-             * @returns {Promise<AudioBuffer>} - A promise that resolves with the decoded AudioBuffer.
-             */
-            loadAudio: function(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = async (e) => {
-                        try {
-                            // Ensure audioContext is initialized
-                            if (!audioContext) {
-                                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                            }
-                            const audioBuffer = await audioContext.decodeAudioData(e.target.result);
-                            resolve(audioBuffer);
-                        } catch (error) {
-                            console.error("Error decoding audio data:", error);
-                            reject(error);
-                        }
-                    };
-                    reader.onerror = (error) => {
-                        console.error("Error reading file:", error);
-                        reject(error);
-                    };
-                    reader.readAsArrayBuffer(file);
-                });
-            }
-        };
-
-        /**
-         * 2. Analyzer
-         * Purpose: Analyze BPM, key, loudness, sections (optional)
-         */
-        const Analyzer = {
-            /**
-             * Analyzes an AudioBuffer to extract metadata.
-             * @param {AudioBuffer} buffer - The AudioBuffer to analyze.
-             * @returns {{ bpm: number, duration: number }} - Object containing analyzed data.
-             */
-            analyzeAudio: function(buffer) {
-                // IMPORTANT NOTE ON BPM ANALYSIS:
-                // This implementation uses a placeholder for BPM analysis (a random value).
-                // For accurate BPM, key, and other timbre descriptors (as a real Mixtrax clone would require),
-                // you would need to integrate a dedicated audio analysis library.
-                // Popular JavaScript libraries for this include:
-                // - Essentia.js (WebAssembly port of the C++ Essentia library, very comprehensive)
-                // - Meyda (JavaScript audio feature extraction library)
-                //
-                // Integrating such libraries into a single HTML file without a build system
-                // can be complex, often requiring dynamic module imports or specific CDN setups
-                // that expose global objects. For this self-contained example, we simulate BPM.
-                const dummyBpm = Math.floor(Math.random() * (140 - 90 + 1)) + 90; // BPM between 90 and 140
-
-                return {
-                    bpm: dummyBpm,
-                    duration: buffer.duration
-                };
-            }
-        };
-
-        /**
-         * 3. PlaylistManager
-         * Purpose: Manage tracks, history, and next selection logic
-         */
-        const PlaylistManager = {
-            tracks: [],
-            history: [], // Stores track IDs
-            currentTrackIndex: -1,
-
-            /**
-             * Adds a track to the playlist.
-             * @param {Object} track - The track object to add.
-             */
-            addTrack: function(track) {
-                this.tracks.push(track);
-            },
-
-            /**
-             * Gets the next track to play, using weighted random selection and avoiding recent history.
-             * This implements "Smart History Tracking" and "Weighted Random" selection.
-             * @returns {Object|null} - The next track object or null if no tracks are available.
-             */
-            getNextTrack: function() {
-                if (this.tracks.length === 0) {
-                    return null;
-                }
-
-                let candidates = this.tracks.filter(track => !this.history.includes(track.id));
-
-                if (candidates.length === 0) {
-                    // If all tracks are in history, clear history and try again
-                    this.history = [];
-                    candidates = this.tracks; // All tracks are now candidates
-                }
-
-                // --- Weighted Random Selection Logic ---
-                // Prioritize tracks not played recently. Tracks never played (lastPlayed === 0) get highest weight.
-                // Tracks played longer ago get higher weight.
-                let totalWeight = 0;
-                const weightedCandidates = candidates.map(track => {
-                    let weight = 1; // Base weight for all tracks
-                    if (track.lastPlayed === 0) {
-                        weight = 10; // High weight for tracks that have never been played
-                    } else {
-                        // Calculate weight based on time since last played. Older tracks get higher weight.
-                        // Scale timeSinceLastPlayed to a reasonable range for weighting (e.g., up to 24 hours).
-                        const timeSinceLastPlayed = Date.now() - track.lastPlayed; // in milliseconds
-                        const maxTimeConsidered = 3600000 * 24; // 24 hours in milliseconds
-                        // Weight scales from 1 (recently played) to 6 (played long ago or never)
-                        weight = 1 + (timeSinceLastPlayed / maxTimeConsidered) * 5;
-                        weight = Math.min(weight, 6); // Cap max weight to prevent extreme bias
-                    }
-                    totalWeight += weight;
-                    return { track: track, weight: weight };
-                });
-
-                // Pick a random number within the total weight to select a track
-                let randomPoint = Math.random() * totalWeight;
-                let chosenTrack = null;
-
-                for (const weightedCandidate of weightedCandidates) {
-                    if (randomPoint < weightedCandidate.weight) {
-                        chosenTrack = weightedCandidate.track;
-                        break;
-                    }
-                    randomPoint -= weightedCandidate.weight;
-                }
-
-                // Fallback: If for some reason no track was chosen by weighted logic (shouldn't happen with correct sums),
-                // or if candidates were empty and history was cleared, pick a random track from all available.
-                if (!chosenTrack && this.tracks.length > 0) {
-                    chosenTrack = this.tracks[Math.floor(Math.random() * this.tracks.length)];
-                } else if (!chosenTrack) { // If no tracks at all
-                    return null;
-                }
-
-                this.currentTrackIndex = this.tracks.indexOf(chosenTrack);
-                return chosenTrack;
-
-                // --- Tempo & Key Diversification (Optional) ---
-                // To implement this, the Analyzer module would need to provide reliable BPM and Key data.
-                // Then, this getNextTrack function could group `candidates` by BPM zones (e.g., 90-100, 101-110 BPM)
-                // or musical keys, and avoid picking from the same group repeatedly, similar to history tracking.
-                // This is beyond the scope of a simple random BPM placeholder.
-            },
-
-            /**
-             * Marks a track as played and adds it to the history.
-             * @param {string} trackId - The ID of the track that was played.
-             */
-            markPlayed: function(trackId) {
-                this.history.push(trackId);
-                // Keep history size limited
-                if (this.history.length > CONFIG.historySize) {
-                    this.history.shift(); // Remove the oldest entry
-                }
-
-                // Update lastPlayed timestamp for the track
-                const track = this.tracks.find(t => t.id === trackId);
-                if (track) {
-                    track.lastPlayed = Date.now();
-                    Storage.saveMeta(track.id, { bpm: track.bpm, lastPlayed: track.lastPlayed });
-                }
-            },
-
-            /**
-             * Resets the playlist manager state.
-             */
-            reset: function() {
-                this.tracks = [];
-                this.history = [];
-                this.currentTrackIndex = -1;
-            }
-        };
-
-        /**
-         * 4. Scheduler
-         * Purpose: Time and queue tracks with offsets and duration
-         */
-        const Scheduler = {
-            /**
-             * Schedules a segment of an AudioBuffer for playback.
-             * @param {AudioBuffer} buffer - The AudioBuffer to play.
-             * @param {number} startTime - The time in the AudioContext's timeline to start playback.
-             * @param {number} duration - The duration of the segment to play.
-             * @param {number} offset - The offset into the buffer to start from.
-             * @param {AudioNode} destinationNode - The node to connect the source to (e.g., a GainNode for crossfading).
-             * @returns {AudioBufferSourceNode} - The created AudioBufferSourceNode.
-             */
-            schedulePlayback: function(buffer, startTime, duration, offset, destinationNode) {
-                const source = audioContext.createBufferSource();
-                source.buffer = buffer;
-                source.connect(destinationNode);
-                source.start(startTime, offset, duration); // start(when, offset, duration)
-                return source;
-            }
-        };
-
-        /**
-         * 5. Crossfader
-         * Purpose: Crossfade between outgoing and incoming track
-         */
-        const Crossfader = {
-            /**
-             * Performs a crossfade between two AudioNodes.
-             * @param {GainNode} outGainNode - The GainNode of the outgoing track.
-             * @param {GainNode} inGainNode - The GainNode of the incoming track.
-             * @param {number} duration - The duration of the crossfade in seconds.
-             */
-            crossfade: function(outGainNode, inGainNode, duration) {
-                const currentTime = audioContext.currentTime;
-
-                // Outgoing track fades out
-                outGainNode.gain.cancelScheduledValues(currentTime);
-                outGainNode.gain.linearRampToValueAtTime(1, currentTime); // Ensure it starts at 1
-                outGainNode.gain.linearRampToValueAtTime(0.0001, currentTime + duration); // Fade to near zero
-
-                // Incoming track fades in
-                inGainNode.gain.cancelScheduledValues(currentTime);
-                inGainNode.gain.linearRampToValueAtTime(0.0001, currentTime); // Ensure it starts at near zero
-                inGainNode.gain.linearRampToValueAtTime(1, currentTime + duration); // Fade to 1
-            }
-        };
-
-        /**
-         * 6. Player
-         * Purpose: Master controller: plays, transitions, loops
-         */
-        const Player = {
-            isPlaying: false,
-            currentTrack: null, // The track currently playing (or just started)
-            currentSourceNode: null,
-            currentGainNode: null,
-            // nextTrack, nextSourceNode, nextGainNode now refer to the track that was *previously* current
-            // and is now 'outgoing' for the current transition.
-            nextTrack: null, // This will hold the track that is fading OUT
-            nextSourceNode: null, // Source node of the track fading OUT
-            nextGainNode: null, // Gain node of the track fading OUT
-            playbackTimeout: null, // Timeout for scheduling the next track
-
-            /**
-             * Starts the playback sequence.
-             */
-            start: async function() {
-                if (this.isPlaying) {
-                    displayMessage("Playback already started.");
-                    return;
-                }
-                if (PlaylistManager.tracks.length === 0) {
-                    displayMessage("No tracks loaded. Please select audio files first.");
-                    return;
-                }
-
-                // Initialize AudioContext if not already
-                if (!audioContext || audioContext.state === 'suspended') {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    await audioContext.resume(); // Resume if suspended
-                }
-
-                this.isPlaying = true;
-                displayMessage("Starting playback...");
-                // On initial start, there's no 'outgoing' track, so nextTrack will be null.
-                // The playNextTrack function handles this.
-                this.playNextTrack();
-            },
-
-            /**
-             * Stops the current playback and resets the player state.
-             */
-            stop: function() {
-                if (!this.isPlaying) {
-                    displayMessage("Playback is not active.");
-                    return;
-                }
-
-                this.isPlaying = false;
-                if (this.currentSourceNode) {
-                    this.currentSourceNode.stop();
-                    this.currentSourceNode.disconnect();
-                    this.currentSourceNode = null;
-                }
-                if (this.nextSourceNode) { // This refers to the track that was fading out
-                    this.nextSourceNode.stop();
-                    this.nextSourceNode.disconnect();
-                    this.nextSourceNode = null;
-                }
-                if (this.playbackTimeout) {
-                    clearTimeout(this.playbackTimeout);
-                    this.playbackTimeout = null;
-                }
-
-                this.currentTrack = null;
-                this.nextTrack = null; // Clear outgoing track reference
-                this.currentGainNode = null;
-                this.nextGainNode = null; // Clear outgoing gain reference
-
-                displayMessage("Playback stopped.");
-                updateTrackListUI(); // Clear playing highlight
-            },
-
-            /**
-             * Skips to the next track immediately.
-             */
-            skip: function() {
-                if (!this.isPlaying) {
-                    displayMessage("Playback is not active. Cannot skip.");
-                    return;
-                }
-                displayMessage("Skipping to next track...");
-                // Stop current track cleanly
-                if (this.currentSourceNode) {
-                    this.currentSourceNode.stop();
-                    this.currentSourceNode.disconnect();
-                    this.currentSourceNode = null;
-                }
-                if (this.nextSourceNode) { // If a next track was pre-scheduled and fading out, stop it too
-                    this.nextSourceNode.stop();
-                    this.nextSourceNode.disconnect();
-                    this.nextSourceNode = null;
-                }
-                if (this.playbackTimeout) {
-                    clearTimeout(this.playbackTimeout);
-                    this.playbackTimeout = null;
-                }
-                // Reset outgoing track/gain references before playing the next one
-                this.nextTrack = null;
-                this.nextGainNode = null;
-                this.playNextTrack();
-            },
-
-            /**
-             * Plays the next track in the playlist. Handles transitions.
-             */
-            playNextTrack: function() {
-                if (!this.isPlaying) {
-                    return; // Ensure player is still active
-                }
-
-                const incomingTrack = PlaylistManager.getNextTrack();
-                if (!incomingTrack) {
-                    displayMessage("No more tracks in playlist. Stopping playback.");
-                    this.stop();
-                    return;
-                }
-
-                // The track that was previously 'currentTrack' now becomes the 'outgoingTrack'
-                // for the current crossfade.
-                const outgoingTrack = this.currentTrack;
-
-                this.currentTrack = incomingTrack; // The track that will start playing now
-                PlaylistManager.markPlayed(this.currentTrack.id);
-                updateTrackListUI(this.currentTrack.id);
-
-                displayMessage(`Playing: ${this.currentTrack.file.name} (BPM: ${this.currentTrack.bpm})`);
-
-                // Create gain node for the incoming track
-                const incomingGainNode = audioContext.createGain();
-                incomingGainNode.connect(audioContext.destination);
-                incomingGainNode.gain.value = 0.0001; // Start muted for crossfade
-
-                // --- Calculate Beat-Aligned Start Offset for Incoming Track ---
-                // This logic aims to start the incoming track at a beat-aligned position.
-                // It picks a random beat within the first 20 seconds of the track,
-                // ensuring the `clipLength` can still be played from that point.
-                let offset = 0;
-                let durationToPlay = CONFIG.clipLength;
-
-                // Only apply offset if the track is long enough to accommodate it and the clip length
-                if (this.currentTrack.buffer.duration > CONFIG.clipLength + CONFIG.fadeDuration) {
-                    const beatDurationIncoming = 60 / this.currentTrack.bpm;
-                    // Max offset to ensure at least CONFIG.clipLength can be played from the offset point
-                    const maxPossibleOffset = this.currentTrack.buffer.duration - CONFIG.clipLength;
-                    // Limit random offset to a reasonable number of beats at the beginning of the track (e.g., first 20 seconds worth of beats)
-                    const maxOffsetBeats = Math.floor(Math.min(maxPossibleOffset, 20) / beatDurationIncoming);
-
-                    if (maxOffsetBeats > 0) {
-                        const randomBeatCount = Math.floor(Math.random() * maxOffsetBeats);
-                        offset = randomBeatCount * beatDurationIncoming;
-                    }
-                }
-                // Ensure durationToPlay doesn't exceed the remaining track length from the calculated offset
-                durationToPlay = Math.min(CONFIG.clipLength, this.currentTrack.buffer.duration - offset);
-
-
-                const startTime = audioContext.currentTime;
-                // The incoming track always starts at its normal playback rate (1.0)
-                this.currentSourceNode = Scheduler.schedulePlayback(
-                    this.currentTrack.buffer,
-                    startTime,
-                    durationToPlay, // Use calculated duration
-                    offset,         // Use calculated offset
-                    incomingGainNode
-                );
-                this.currentGainNode = incomingGainNode;
-                this.currentSourceNode.playbackRate.value = 1.0; // Ensure incoming track starts at normal speed
-
-                // If there was a previous track playing (outgoingTrack exists and its nodes are still active),
-                // perform crossfade and tempo adjustment.
-                // this.nextGainNode and this.nextSourceNode refer to the *previous* track that was playing
-                // and is now the one fading out.
-                if (outgoingTrack && this.nextGainNode && this.nextSourceNode) {
-                    Crossfader.crossfade(this.nextGainNode, this.currentGainNode, CONFIG.fadeDuration);
-
-                    // --- Tempo Matching Logic ---
-                    // Adjust the outgoing track's playback rate to match the incoming track's BPM.
-                    // Note: Changing playbackRate also changes pitch. For pitch-preserving time-stretching,
-                    // more advanced algorithms and libraries would be required.
-                    const targetBPM = this.currentTrack.bpm; // BPM of the incoming track
-                    const currentBPM = outgoingTrack.bpm;    // BPM of the outgoing track
-
-                    // Calculate the target playback rate for the outgoing track
-                    // This rate will make the outgoing track's tempo match the incoming track's tempo.
-                    // Avoid division by zero if BPM is somehow 0 (though Analyzer generates > 0)
-                    const targetPlaybackRate = currentBPM !== 0 ? (targetBPM / currentBPM) : 1.0;
-
-                    // Apply tempo adjustment to the outgoing track's playbackRate during the crossfade
-                    // Ensure the ramp starts from its current playbackRate value (which should be 1.0 initially,
-                    // or whatever it was previously adjusted to if a chain of tempo changes occurred).
-                    this.nextSourceNode.playbackRate.cancelScheduledValues(startTime);
-                    this.nextSourceNode.playbackRate.linearRampToValueAtTime(this.nextSourceNode.playbackRate.value, startTime);
-                    this.nextSourceNode.playbackRate.linearRampToValueAtTime(targetPlaybackRate, startTime + CONFIG.fadeDuration);
-
-                    // Disconnect the old source after fade out and tempo adjustment is complete
-                    // The onended event fires when the source node finishes playing (after its scheduled duration).
-                    this.nextSourceNode.onended = () => {
-                        this.nextSourceNode.disconnect();
-                        this.nextSourceNode = null;
-                        this.nextGainNode.disconnect();
-                        this.nextGainNode = null;
-                    };
-                } else {
-                    // This is the very first track, just fade in
-                    this.currentGainNode.gain.cancelScheduledValues(startTime);
-                    this.currentGainNode.gain.linearRampToValueAtTime(1, startTime + CONFIG.fadeDuration);
-                }
-
-                // Pre-schedule the next track's playback
-                // The next track will start playing (and crossfading) when the current track is almost done.
-                // This timing ensures a seamless transition.
-                const nextTrackScheduleTime = audioContext.currentTime + durationToPlay - CONFIG.fadeDuration;
-
-                this.playbackTimeout = setTimeout(() => {
-                    if (this.isPlaying) {
-                        // The current track's source and gain node become the 'outgoing' ones for the *next* transition
-                        this.nextSourceNode = this.currentSourceNode;
-                        this.nextGainNode = this.currentGainNode;
-
-                        // Now, call playNextTrack again to handle the transition to the actual 'nextTrack'
-                        this.playNextTrack();
-                    }
-                }, (durationToPlay - CONFIG.fadeDuration) * 1000); // Convert to milliseconds
-            }
-        };
-
-        /**
-         * 7. Storage
-         * Purpose: Save/load local track metadata (e.g. BPM cache)
-         */
-        const Storage = {
-            /**
-             * Saves metadata for a track to local storage.
-             * @param {string} id - The ID of the track.
-             * @param {Object} data - The metadata object to save.
-             */
-            saveMeta: function(id, data) {
-                try {
-                    localStorage.setItem(`mixtrax_meta_${id}`, JSON.stringify(data));
-                } catch (e) {
-                    console.warn("Local storage not available or full.", e);
-                }
-            },
-
-            /**
-             * Loads metadata for a track from local storage.
-             * @param {string} id - The ID of the track.
-             * @returns {Object|null} - The loaded metadata object or null if not found.
-             */
-            loadMeta: function(id) {
-                try {
-                    const data = localStorage.getItem(`mixtrax_meta_${id}`);
-                    return data ? JSON.parse(data) : null;
-                } catch (e) {
-                    console.warn("Error loading from local storage.", e);
-                    return null;
-                }
-            }
-        };
-
-        // --- UI and Event Handling ---
-
-        const audioFileInput = document.getElementById('audioFileInput');
-        const startButton = document.getElementById('startButton');
-        const stopButton = document.getElementById('stopButton');
-        const skipButton = document.getElementById('skipButton');
-        const messagesDiv = document.getElementById('messages');
-        const trackUl = document.getElementById('track-ul');
-
-        /**
-         * Displays a message in the messages div.
-         * @param {string} message - The message to display.
-         */
-        function displayMessage(message) {
-            messagesDiv.textContent = message;
+        function ensureCtx() {
+            if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
         }
 
-        /**
-         * Updates the track list UI, highlighting the currently playing track.
-         * @param {string|null} playingTrackId - The ID of the currently playing track, or null to clear highlight.
-         */
-        function updateTrackListUI(playingTrackId = null) {
-            trackUl.innerHTML = ''; // Clear existing list
-            if (PlaylistManager.tracks.length === 0) {
-                trackUl.innerHTML = '<li class="text-center text-gray-400">No tracks loaded yet.</li>';
-                return;
-            }
-
-            PlaylistManager.tracks.forEach(track => {
-                const li = document.createElement('li');
-                li.className = `track-item rounded-md ${track.id === playingTrackId ? 'playing' : ''}`;
-                li.innerHTML = `
-                    <span>${track.file.name}</span>
-                    <span class="text-sm text-gray-400">${track.bpm ? `BPM: ${track.bpm}` : ''}</span>
-                `;
-                trackUl.appendChild(li);
+        function makeElements() {
+            leftElem = new Audio(); rightElem = new Audio();
+            leftElem.loop = true; rightElem.loop = true;
+            leftSrc = ac.createMediaElementSource(leftElem);
+            rightSrc = ac.createMediaElementSource(rightElem);
+            leftPanner = ac.createPanner(); rightPanner = ac.createPanner();
+            [leftPanner, rightPanner].forEach(p => {
+                p.panningModel = 'HRTF';
+                p.distanceModel = 'inverse';
+                p.refDistance = 1;
+                p.maxDistance = 10000;
             });
+            leftSrc.connect(leftPanner).connect(ac.destination);
+            rightSrc.connect(rightPanner).connect(ac.destination);
         }
 
+        function load(elem, file) {
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            elem.src = url; elem.load();
+        }
 
-        // Event Listeners
-        audioFileInput.addEventListener('change', async (event) => {
-            const files = event.target.files;
-            if (files.length === 0) {
-                displayMessage("No files selected.");
-                return;
-            }
+        function animate() {
+            if (!orbit) return;
+            t += 0.02 * parseFloat(speed.value);
+            const lx = Math.cos(t) * 1, lz = Math.sin(t) * 1;
+            const rx = Math.cos(t + Math.PI) * 1, rz = Math.sin(t + Math.PI) * 1;
+            leftPanner.positionX.value = lx; leftPanner.positionY.value = 0; leftPanner.positionZ.value = lz;
+            rightPanner.positionX.value = rx; rightPanner.positionY.value = 0; rightPanner.positionZ.value = rz;
+            requestAnimationFrame(animate);
+        }
 
-            // Reset player and playlist if new files are selected
-            Player.stop();
-            PlaylistManager.reset();
-            updateTrackListUI();
-
-            displayMessage(`Loading ${files.length} audio file(s)... This may take a moment.`);
-            let loadedCount = 0;
-
-            for (const file of files) {
-                const trackId = file.name + file.size + file.lastModified; // Simple unique ID
-                let trackMeta = Storage.loadMeta(trackId);
-
-                try {
-                    const buffer = await AudioLoader.loadAudio(file);
-                    const analysis = Analyzer.analyzeAudio(buffer);
-
-                    const track = {
-                        id: trackId,
-                        file: file,
-                        bpm: trackMeta?.bpm || analysis.bpm, // Use cached BPM if available
-                        buffer: buffer,
-                        lastPlayed: trackMeta?.lastPlayed || 0
-                    };
-                    PlaylistManager.addTrack(track);
-                    Storage.saveMeta(track.id, { bpm: track.bpm, lastPlayed: track.lastPlayed }); // Cache initial analysis
-                    loadedCount++;
-                    displayMessage(`Loaded ${loadedCount}/${files.length} files. Ready to play.`);
-                } catch (error) {
-                    console.error(`Failed to load or decode ${file.name}:`, error);
-                    displayMessage(`Error loading ${file.name}. See console for details.`);
-                }
-            }
-            updateTrackListUI();
-            if (loadedCount > 0) {
-                displayMessage(`Successfully loaded ${loadedCount} file(s). Click 'Start Playback'.`);
-            } else {
-                displayMessage("No audio files could be loaded.");
-            }
-        });
-
-        startButton.addEventListener('click', () => {
-            Player.start();
-        });
-
-        stopButton.addEventListener('click', () => {
-            Player.stop();
-        });
-
-        skipButton.addEventListener('click', () => {
-            Player.skip();
-        });
-
-        // Initial UI update
-        window.onload = () => {
-            updateTrackListUI();
-            // Initialize AudioContext on user interaction to avoid browser autoplay policy issues
-            document.body.addEventListener('click', () => {
-                if (!audioContext || audioContext.state === 'suspended') {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    audioContext.resume().then(() => {
-                        console.log('AudioContext resumed successfully');
-                    });
-                }
-            }, { once: true }); // Only run once
+        play.onclick = async () => {
+            ensureCtx();
+            if (!leftElem) makeElements();
+            load(leftElem, leftFile.files[0]);
+            load(rightElem, rightFile.files[0]);
+            await ac.resume();
+            leftElem.play(); rightElem.play();
+            orbit = true; animate();
         };
 
+        stop.onclick = () => {
+            orbit = false;
+            if (leftElem) { leftElem.pause(); leftElem.currentTime = 0; }
+            if (rightElem) { rightElem.pause(); rightElem.currentTime = 0; }
+        };
     </script>
 </body>
+
 </html>
