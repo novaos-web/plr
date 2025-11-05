@@ -2,109 +2,246 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <title>Mixtraxer</title>
-    <style>
-        body {
-            font-family: system-ui;
-            display: flex;
-            flex-direction: column;
-            gap: 1em;
-            align-items: center;
-            height: 100vh;
-            justify-content: center;
-            background-color: black;
-            margin: 0;
-            color: white;
-            &>div {
-                display: inherit;
-                flex-direction: row;
-                gap: .5em;
-            }
-        }
+  <meta charset="utf-8">
+  <title>Mixtraxer</title>
+  <style>
+    body {
+      font-family: system-ui;
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      padding: 3em;
+      background: black;
+      margin: 0;
+      color: white
+    }
 
-        input[type="file"] {
-            background-color: #101010;
-            border-radius: .5em;
-            padding: .5em;
-        }
+    body>div {
+      display: flex;
+      flex-direction: row;
+      gap: .5em;
+      flex-wrap: wrap;
+      max-width: 700px;
+      margin: auto;
 
-        button {
-            padding: .5em .8em;
-            background-color: rgb(23, 50, 27);
-            color: rgb(32, 255, 132);
-            font-size: 1.5em;
-            border: none;
-            border-radius: 1.5em;
+      &>div {
+        display: flex;
+        gap: .5em;
+        flex-direction: row;
+      }
+    }
+
+    .main {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+
+      &>.sec {
+        display: flex;
+        flex-direction: column;
+        gap: .5em;
+
+        &>div {
+          display: flex;
+          flex-direction: row;
+          flex-wrap: wrap;
+          justify-content: space-evenly;
         }
-    </style>
+      }
+
+      &>.divide {
+        height: 24em;
+        margin: auto;
+        width: 1px;
+        background: linear-gradient(45deg, transparent, #444444, transparent);
+        display: block;
+      }
+    }
+
+    input,
+    select {
+      background: #101010;
+      border-radius: .5em;
+      padding: .5em;
+      color: white;
+      font-size: 1.5em;
+      width: calc(100% - 1em);
+      min-width: 0
+    }
+
+    button {
+      padding: .5em .8em;
+      background: rgb(23, 50, 27);
+      color: rgb(32, 255, 132);
+      font-size: 1.5em;
+      border: none;
+      border-radius: 1.5em
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      max-width: 700px;
+      gap: .5em;
+      padding: 1em;
+      background: #101010;
+      border-radius: 1.5em
+    }
+  </style>
 </head>
 
 <body>
-    <h1>Mixtraxer</h1>
-    <p>Causes dizziness, disorientation and if exposed to for long periods, mild nausea.</p>
-    <input id="leftFile" type="file" accept="audio/*">
-    <input id="rightFile" type="file" accept="audio/*">
-    <label>Speed <input id="speed" type="range" min="0.1" max="5" step="0.1" value="1"></label>
-    <div><button id="play">Play</button>
-    <button id="stop">Stop</button></div>
+  <h1>Mixtraxer</h1>
+  <p>Causes dizziness, disorientation and if exposed to for long periods, mild nausea.</p>
 
-    <script>
-        let ac, leftElem, rightElem, leftSrc, rightSrc, leftPanner, rightPanner;
-        let orbit = true, t = 0;
+  <div style="flex-direction: column;">
+    <h1>360 Mode Settings</h1>
+    <button id="toggleOrbit">OFF</button>
+    <div>
+      <label>Speed <input id="speed" type="range" min="0" max="5" value="1"></label>
+      <label>Playback Mode
+        <select id="playbackMode">
+          <option value="cut">Cut off on shortest</option>
+          <option value="long">Play till longest</option>
+        </select>
+      </label>
+    </div>
+  </div>
 
-        function ensureCtx() {
-            if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-        }
+  <div class="main">
+    <div class="sec">
+      <h1>Left ear</h1>
+      Tracks: <input id="leftFiles" type="file" accept="audio/*" multiple>
+      <label>Volume: <input id="leftVol" type="range" min="0" max="1" step="0.01" value="1"></label>
+      <div>
+        <button id="prevLeft">⏮</button>
+        <button id="playLeft">▶</button>
+        <button id="pauseLeft">⏸</button>
+        <button id="nextLeft">⏭</button>
+        <canvas id="leftWave" width="300" height="80"></canvas>
+      </div>
+    </div>
+    <div class="divide"></div>
+    <div class="sec">
+      <h1>Right ear</h1>
+      Tracks: <input id="rightFiles" type="file" accept="audio/*" multiple>
+      <label>Volume: <input id="rightVol" type="range" min="0" max="1" step="0.01" value="1"></label>
+      <div>
+        <button id="prevRight">⏮</button>
+        <button id="playRight">▶</button>
+        <button id="pauseRight">⏸</button>
+        <button id="nextRight">⏭</button>
+        <canvas id="rightWave" width="300" height="80"></canvas>
+      </div>
+    </div>
+  </div>
 
-        function makeElements() {
-            leftElem = new Audio(); rightElem = new Audio();
-            leftElem.loop = true; rightElem.loop = true;
-            leftSrc = ac.createMediaElementSource(leftElem);
-            rightSrc = ac.createMediaElementSource(rightElem);
-            leftPanner = ac.createPanner(); rightPanner = ac.createPanner();
-            [leftPanner, rightPanner].forEach(p => {
-                p.panningModel = 'HRTF';
-                p.distanceModel = 'inverse';
-                p.refDistance = 1;
-                p.maxDistance = 10000;
-            });
-            leftSrc.connect(leftPanner).connect(ac.destination);
-            rightSrc.connect(rightPanner).connect(ac.destination);
-        }
+  <script>
+    let ac, leftElem, rightElem, leftSrc, rightSrc, leftGain, rightGain, merger, leftPanner, rightPanner, t = 0, orbit = false, rotate360 = false;
+    let leftTracks = [], rightTracks = [], leftIndex = 0, rightIndex = 0, leftAnalyzer, rightAnalyzer, leftCtx, rightCtx, leftData, rightData;
 
-        function load(elem, file) {
-            if (!file) return;
-            const url = URL.createObjectURL(file);
-            elem.src = url; elem.load();
-        }
+    function ensureCtx() { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)() }
+    function makeElements() {
+      leftElem = new Audio(); rightElem = new Audio();
+      leftSrc = ac.createMediaElementSource(leftElem);
+      rightSrc = ac.createMediaElementSource(rightElem);
+      leftGain = ac.createGain(); rightGain = ac.createGain();
+      leftAnalyzer = ac.createAnalyser(); rightAnalyzer = ac.createAnalyser();
+      merger = ac.createChannelMerger(2);
+      leftCtx = leftWave.getContext("2d"); rightCtx = rightWave.getContext("2d");
+      leftData = new Uint8Array(leftAnalyzer.frequencyBinCount);
+      rightData = new Uint8Array(rightAnalyzer.frequencyBinCount);
+      connectStereo();
+    }
 
-        function animate() {
-            if (!orbit) return;
-            t += 0.02 * parseFloat(speed.value);
-            const lx = Math.cos(t) * 1, lz = Math.sin(t) * 1;
-            const rx = Math.cos(t + Math.PI) * 1, rz = Math.sin(t + Math.PI) * 1;
-            leftPanner.positionX.value = lx; leftPanner.positionY.value = 0; leftPanner.positionZ.value = lz;
-            rightPanner.positionX.value = rx; rightPanner.positionY.value = 0; rightPanner.positionZ.value = rz;
-            requestAnimationFrame(animate);
-        }
+    function connectStereo() {
+      disconnectAll();
+      leftSrc.connect(leftAnalyzer).connect(leftGain).connect(merger, 0, 0);
+      rightSrc.connect(rightAnalyzer).connect(rightGain).connect(merger, 0, 1);
+      merger.connect(ac.destination);
+    }
+    function connectOrbit() {
+      disconnectAll();
+      leftPanner = ac.createPanner(); rightPanner = ac.createPanner();
+      [leftPanner, rightPanner].forEach(p => { p.panningModel = 'HRTF'; p.distanceModel = 'inverse'; });
+      leftSrc.connect(leftAnalyzer).connect(leftPanner).connect(leftGain).connect(ac.destination);
+      rightSrc.connect(rightAnalyzer).connect(rightPanner).connect(rightGain).connect(ac.destination);
+    }
+    function disconnectAll() { try { leftSrc.disconnect(); rightSrc.disconnect(); leftGain.disconnect(); rightGain.disconnect(); merger.disconnect(); } catch { } }
 
-        play.onclick = async () => {
-            ensureCtx();
-            if (!leftElem) makeElements();
-            load(leftElem, leftFile.files[0]);
-            load(rightElem, rightFile.files[0]);
-            await ac.resume();
-            leftElem.play(); rightElem.play();
-            orbit = true; animate();
-        };
+    function playTrack(side) {
+      if (side === "left") {
+        if (!leftTracks.length) return;
+        if (!leftElem.src) leftElem.src = URL.createObjectURL(leftTracks[leftIndex]);
+        leftElem.play();
+      } else {
+        if (!rightTracks.length) return;
+        if (!rightElem.src) rightElem.src = URL.createObjectURL(rightTracks[rightIndex]);
+        rightElem.play();
+      }
+    }
 
-        stop.onclick = () => {
-            orbit = false;
-            if (leftElem) { leftElem.pause(); leftElem.currentTime = 0; }
-            if (rightElem) { rightElem.pause(); rightElem.currentTime = 0; }
-        };
-    </script>
+    function nextTrack(side) {
+      if (side === "left" && leftTracks.length) { leftIndex = (leftIndex + 1) % leftTracks.length; leftElem.src = ''; playTrack("left"); }
+      if (side === "right" && rightTracks.length) { rightIndex = (rightIndex + 1) % rightTracks.length; rightElem.src = ''; playTrack("right"); }
+    }
+    function prevTrack(side) {
+      if (side === "left" && leftTracks.length) { leftIndex = (leftIndex - 1 + leftTracks.length) % leftTracks.length; leftElem.src = ''; playTrack("left"); }
+      if (side === "right" && rightTracks.length) { rightIndex = (rightIndex - 1 + rightTracks.length) % rightTracks.length; rightElem.src = ''; playTrack("right"); }
+    }
+
+    function visualize() {
+      leftAnalyzer.getByteFrequencyData(leftData);
+      rightAnalyzer.getByteFrequencyData(rightData);
+      leftCtx.clearRect(0, 0, 300, 80); rightCtx.clearRect(0, 0, 300, 80);
+      for (let i = 0; i < leftData.length; i += 4) { let h = leftData[i] / 2; leftCtx.fillRect(i / 2, 80 - h, 2, h); }
+      for (let i = 0; i < rightData.length; i += 4) { let h = rightData[i] / 2; rightCtx.fillRect(i / 2, 80 - h, 2, h); }
+      requestAnimationFrame(visualize);
+    }
+
+    function animate() {
+      if (!orbit || !rotate360) return;
+      t += 0.02 * parseFloat(speed.value);
+      const lx = Math.cos(t), lz = Math.sin(t);
+      const rx = Math.cos(t + Math.PI), rz = Math.sin(t + Math.PI);
+      if (leftPanner && rightPanner) {
+        leftPanner.positionX.value = lx; leftPanner.positionZ.value = lz;
+        rightPanner.positionX.value = rx; rightPanner.positionZ.value = rz;
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function startPlayback() {
+      ensureCtx();
+      if (!leftElem) makeElements();
+      leftTracks = Array.from(leftFiles.files);
+      rightTracks = Array.from(rightFiles.files);
+      leftGain.gain.value = parseFloat(leftVol.value);
+      rightGain.gain.value = parseFloat(rightVol.value);
+      ac.resume();
+      visualize();
+    }
+
+    playLeft.onclick = async () => { startPlayback(); playTrack("left"); leftElem.onended = () => nextTrack("left") }
+    pauseLeft.onclick = () => { if (leftElem && !leftElem.paused) leftElem.pause() }
+    playRight.onclick = async () => { startPlayback(); playTrack("right"); rightElem.onended = () => nextTrack("right") }
+    pauseRight.onclick = () => { if (rightElem && !rightElem.paused) rightElem.pause() }
+
+    leftVol.oninput = () => { if (leftGain) leftGain.gain.value = parseFloat(leftVol.value) }
+    rightVol.oninput = () => { if (rightGain) rightGain.gain.value = parseFloat(rightVol.value) }
+
+    toggleOrbit.onclick = () => {
+      rotate360 = !rotate360;
+      toggleOrbit.textContent = `360 Mode: ${rotate360 ? 'ON' : 'OFF'}`;
+      if (rotate360) { connectOrbit(); orbit = true; animate(); }
+      else { connectStereo(); orbit = false; }
+    }
+
+    prevLeft.onclick = () => prevTrack("left");
+    nextLeft.onclick = () => nextTrack("left");
+    prevRight.onclick = () => prevTrack("right");
+    nextRight.onclick = () => nextTrack("right");
+  </script>
 </body>
 
 </html>
