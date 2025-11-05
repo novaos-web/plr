@@ -87,6 +87,50 @@
       background: #101010;
       border-radius: 1.5em
     }
+
+    .marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  box-sizing: border-box;
+  animation: marquee 10s linear infinite;
+  font-size: 1.2em;
+  color: #00ff88;
+}
+
+@keyframes marquee {
+  0% { text-indent: 100% }
+  100% { text-indent: -100% }
+}
+
+.tracklist {
+  display: flex;
+  flex-direction: column;
+  gap: .2em;
+  font-size: 1em;
+  background: #151515;
+  padding: .5em;
+  border-radius: .5em;
+  max-height: 10em;
+  overflow-y: auto;
+}
+
+.trackitem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .2em .4em;
+  background: #202020;
+  border-radius: .4em;
+  cursor: pointer;
+}
+
+.trackitem button {
+  font-size: .9em;
+  background: #222;
+  color: #0f0;
+  padding: .2em .5em;
+}
+
   </style>
 </head>
 
@@ -119,6 +163,9 @@
         <button id="pauseLeft">⏸</button>
         <button id="nextLeft">⏭</button>
         <canvas id="leftWave" width="300" height="80"></canvas>
+        <div id="leftNow" class="marquee"></div>
+<div id="leftList" class="tracklist"></div>
+
       </div>
     </div>
     <div class="divide"></div>
@@ -132,6 +179,9 @@
         <button id="pauseRight">⏸</button>
         <button id="nextRight">⏭</button>
         <canvas id="rightWave" width="300" height="80"></canvas>
+        <div id="rightNow" class="marquee"></div>
+<div id="rightList" class="tracklist"></div>
+
       </div>
     </div>
   </div>
@@ -170,20 +220,37 @@
     function disconnectAll() { try { leftSrc.disconnect(); rightSrc.disconnect(); leftGain.disconnect(); rightGain.disconnect(); merger.disconnect(); } catch { } }
 
     function playTrack(side) {
-      if (side === "left") {
-        if (!leftTracks.length) return;
-        if (!leftElem.src) leftElem.src = URL.createObjectURL(leftTracks[leftIndex]);
-        leftElem.play();
-      } else {
-        if (!rightTracks.length) return;
-        if (!rightElem.src) rightElem.src = URL.createObjectURL(rightTracks[rightIndex]);
-        rightElem.play();
-      }
-    }
+  if (side === "left") {
+    if (!leftTracks.length) return;
+    leftElem.src = URL.createObjectURL(leftTracks[leftIndex]);
+    leftElem.play();
+    updateNowPlaying("left", leftTracks[leftIndex].name);
+  } else {
+    if (!rightTracks.length) return;
+    rightElem.src = URL.createObjectURL(rightTracks[rightIndex]);
+    rightElem.play();
+    updateNowPlaying("right", rightTracks[rightIndex].name);
+  }
+}
+
 
     function nextTrack(side) {
       if (side === "left" && leftTracks.length) { leftIndex = (leftIndex + 1) % leftTracks.length; leftElem.src = ''; playTrack("left"); }
       if (side === "right" && rightTracks.length) { rightIndex = (rightIndex + 1) % rightTracks.length; rightElem.src = ''; playTrack("right"); }
+
+      if (side === "left" && leftTracks.length) {
+  leftIndex = (leftIndex + 1) % leftTracks.length;
+  leftElem.src = '';
+  playTrack("left");
+  updateNowPlaying("left", leftTracks[leftIndex].name);
+}
+if (side === "right" && rightTracks.length) {
+  rightIndex = (rightIndex + 1) % rightTracks.length;
+  rightElem.src = '';
+  playTrack("right");
+  updateNowPlaying("right", rightTracks[rightIndex].name);
+}
+
     }
     function prevTrack(side) {
       if (side === "left" && leftTracks.length) { leftIndex = (leftIndex - 1 + leftTracks.length) % leftTracks.length; leftElem.src = ''; playTrack("left"); }
@@ -221,6 +288,46 @@
       ac.resume();
       visualize();
     }
+
+    function renderList(side) {
+  const container = side === "left" ? leftList : rightList;
+  const tracks = side === "left" ? leftTracks : rightTracks;
+  container.innerHTML = "";
+  tracks.forEach((f, i) => {
+    const div = document.createElement("div");
+    div.className = "trackitem";
+    const name = document.createElement("span");
+    name.textContent = f.name;
+    name.onclick = () => { if (side === "left") { leftIndex = i; leftElem.src = ''; playTrack("left"); } else { rightIndex = i; rightElem.src = ''; playTrack("right"); } };
+    const playNow = document.createElement("button");
+    playNow.textContent = "▶";
+    playNow.onclick = e => { e.stopPropagation(); if (side === "left") { leftIndex = i; leftElem.src = ''; playTrack("left"); } else { rightIndex = i; rightElem.src = ''; playTrack("right"); } };
+    const playNext = document.createElement("button");
+    playNext.textContent = "⏭";
+    playNext.onclick = e => { e.stopPropagation(); if (side === "left") leftIndex = (i - 1 + tracks.length) % tracks.length; else rightIndex = (i - 1 + tracks.length) % tracks.length; };
+    const remove = document.createElement("button");
+    remove.textContent = "❌";
+    remove.onclick = e => { e.stopPropagation(); tracks.splice(i, 1); renderList(side); };
+    div.append(name, playNow, playNext, remove);
+    container.appendChild(div);
+  });
+}
+
+function updateNowPlaying(side, name) {
+  const el = side === "left" ? leftNow : rightNow;
+  el.textContent = name ? `Now Playing: ${name}` : "";
+}
+
+function loadTracks(side) {
+  const files = side === "left" ? leftFiles.files : rightFiles.files;
+  if (side === "left") leftTracks = Array.from(files);
+  else rightTracks = Array.from(files);
+  renderList(side);
+}
+
+leftFiles.onchange = () => loadTracks("left");
+rightFiles.onchange = () => loadTracks("right");
+
 
     playLeft.onclick = async () => { startPlayback(); playTrack("left"); leftElem.onended = () => nextTrack("left") }
     pauseLeft.onclick = () => { if (leftElem && !leftElem.paused) leftElem.pause() }
